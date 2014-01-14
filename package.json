@@ -1,0 +1,28 @@
+{
+  "name": "youtube-search-cli",
+  "version": "0.0.1",
+  "description": "CLI script that searches youtube",
+  "main": "youtube_search.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/binocarlos/youtube-search-cli.git"
+  },
+  "keywords": [
+    "youtube",
+    "cli"
+  ],
+  "author": "Kai Davenport",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/binocarlos/youtube-search-cli/issues"
+  },
+  "homepage": "https://github.com/binocarlos/youtube-search-cli",
+  "dependencies": {
+    "optimist": "~0.6.0",
+    "youtube-search": "0.0.3",
+    "youtube-node": "0.0.2"
+  }
+}
