@@ -4,7 +4,7 @@
   "description": "CLI script that searches youtube",
   "main": "youtube_search.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,6 @@
   "homepage": "https://github.com/binocarlos/youtube-search-cli",
   "dependencies": {
     "optimist": "~0.6.0",
-    "youtube-search": "0.0.3",
     "youtube-node": "0.0.2"
   }
 }
