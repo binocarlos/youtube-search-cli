@@ -2,8 +2,11 @@
   "name": "youtube-search-cli",
   "version": "0.0.1",
   "description": "CLI script that searches youtube",
-  "main": "youtube_search.js",
+  "main": "index.js",
   "scripts": {},
+  "bin": {
+    "youtube-search-cli": "./cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/binocarlos/youtube-search-cli.git"

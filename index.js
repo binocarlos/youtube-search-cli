@@ -3,33 +3,52 @@ var JSONStream = require('JSONStream');
 var eventStream = require('event-stream');
 var concat = require('concat-stream');
 var through = require('through');
+var EventEmitter = require('events').EventEmitter;
 
 module.exports = function Bot(options){
 
 	var key = options.key;
 	var search = options.search;
-	var max = options.max;
+	var max = parseInt(options.max || 10);
+	var perpage = 50;
+
+	if(isNaN(max)){
+		max = 10;
+	}
+
+	var params = {
+		type:'video',
+		part:'snippet',
+		order:'date',
+		q:encodeURIComponent(search),
+		key:key
+	}
+
+	var api = new EventEmitter();
 
 	function getSearchUrl(pagetoken, count){
 		count = count || 50;
-		var url = 'https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=' + count + '&order=date&q=' + encodeURIComponent(search) + '&key=' + key;
+
+		var query = Object.keys(params || {}).map(function(p){
+			return p + '=' + params[p];
+		}).concat(['maxResults=' + count])
 
 		if(pagetoken){
-			url += '&pageToken=' + pagetoken;
+			query.push('pageToken=' + pagetoken);
 		}
+
+		var url = 'https://www.googleapis.com/youtube/v3/search?' + query.join('&')
 
 		return url;
 	}
 
-	function run_search(pagetoken){
-		var url = getSearchUrl(pagetoken);
+	function run_search(pagetoken, count){
+		var url = getSearchUrl(pagetoken, count);
 
 		var req = hyperquest(url);
 		var json = JSONStream.parse('items.*');
 
 		json.on('root', function(root, count) {
-			console.dir(root);
-			console.dir(count);
 		  if (count) {
 	    	json.emit('pagetoken', root.nextPageToken);
 		  }
@@ -51,16 +70,28 @@ module.exports = function Bot(options){
 		req.pipe(buffer);
 	}
 
-	function run_pages(videofn, done){
+	function run_pages(done){
 
 		var pagecount = 0;
+		var totalpages = 0;
 
 		function next_page(pagetoken){
 			var next_token = null;
-			var pagevideos = run_search(pagetoken);
+
+			var nextpage = pagecount + perpage;
+			var nextperpage = perpage;
+			
+			if(nextpage>=max){
+				nextperpage = max - pagecount;
+				nextpage = max;
+			}
+
+			api.emit('page', totalpages, pagetoken);
+
+			var pagevideos = run_search(pagetoken, nextperpage);
 
 			var logger = eventStream.mapSync(function (data) {
-				videofn(data);
+				api.emit('video', data);
 		    return data;
 		  })
 
@@ -69,24 +100,23 @@ module.exports = function Bot(options){
 			})
 
 			pagevideos.on('end', function(){
-				pagecount+=50;
-
 				var runnext = true;
+
+				pagecount = nextpage;
 
 				if(max && pagecount>=max){
 					runnext = false;
 				}
-
+				
 				if(!next_token){
 					runnext = false;
 				}
 
 				if(runnext){
+					totalpages++;
 					next_page(next_token);
 				}
 				else{
-					console.log('-------------------------------------------');
-					console.log(pagecount);
 					done();
 				}
 				
@@ -98,8 +128,16 @@ module.exports = function Bot(options){
 		next_page();
 	}
 
-	return {
-		pages:run_pages,
-		total:run_total
+	function run_query(done){
+		run_total(function(error, total){
+			console.log('-------------------------------------------');
+			console.dir(total);
+			process.exit();
+		})
 	}
+
+	api.query = run_query;
+	api.total = run_total;
+
+	return api;
 }

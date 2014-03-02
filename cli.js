@@ -4,7 +4,7 @@ var Bot = require('./index');
 var eventStream = require('event-stream');
 var search = argv.search || argv.s;
 var key = argv.key || argv.k || process.env.YOUTUBE_SEARCH_KEY;
-var max = argv.max || argv.m || 100;
+var max = argv.max || argv.m || 10;
 var total = argv.total || argv.t;
 var api = 'https://www.googleapis.com/youtube/v3/search?part=snippet';
 //https://www.googleapis.com/youtube/v3/search?part=snippet&q=castle&key=AIzaSyB1OOSpTREs85WUMvIgJvLTZKye4BVsoFU
@@ -52,9 +52,14 @@ if(total){
 }
 else{
 
-	bot.pages(function(video){
-		//console.log(JSON.stringify(video));
-	}, function(error){
+	bot.on('video', function(video){
+		console.log(JSON.stringify(video));
+	})
+
+	bot.on('page', function(page, token){
+		//console.log('page: ' + page + ' - ' + token);
+	})
+	bot.query(function(error){
 		process.exit();
 	})
 }	
