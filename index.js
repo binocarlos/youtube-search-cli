@@ -26,7 +26,7 @@ module.exports = function Bot(options){
 
 	var api = new EventEmitter();
 
-	function getSearchUrl(pagetoken, count){
+	function getSearchUrl(pagetoken, count, publishedBefore){
 		count = count || 50;
 
 		var query = Object.keys(params || {}).map(function(p){
@@ -37,13 +37,17 @@ module.exports = function Bot(options){
 			query.push('pageToken=' + pagetoken);
 		}
 
+		if(publishedBefore){
+			query.push('publishedBefore=' + publishedBefore);
+		}
+
 		var url = 'https://www.googleapis.com/youtube/v3/search?' + query.join('&')
 
 		return url;
 	}
 
-	function run_search(pagetoken, count){
-		var url = getSearchUrl(pagetoken, count);
+	function run_search(pagetoken, count, publishedBefore){
+		var url = getSearchUrl(pagetoken, count, publishedBefore);
 
 		var req = hyperquest(url);
 		var json = JSONStream.parse('items.*');
@@ -72,26 +76,28 @@ module.exports = function Bot(options){
 
 	function run_pages(done){
 
+		var videocount = 0;
 		var pagecount = 0;
-		var totalpages = 0;
 
-		function next_page(pagetoken){
+		function next_page(pagetoken, publishedBefore){
 			var next_token = null;
+			var next_published = null;
 
-			var nextpage = pagecount + perpage;
-			var nextperpage = perpage;
 			
-			if(nextpage>=max){
-				nextperpage = max - pagecount;
-				nextpage = max;
+
+			var useperpage = perpage;
+
+			if(videocount+perpage>max){
+				useperpage = max - videocount;
 			}
 
-			api.emit('page', totalpages, pagetoken);
+			var pagevideos = run_search(pagetoken, useperpage, publishedBefore);
 
-			var pagevideos = run_search(pagetoken, nextperpage);
+			var lastpublished = null;
 
 			var logger = eventStream.mapSync(function (data) {
 				api.emit('video', data);
+				next_published = data.snippet.publishedAt;
 		    return data;
 		  })
 
@@ -102,9 +108,11 @@ module.exports = function Bot(options){
 			pagevideos.on('end', function(){
 				var runnext = true;
 
-				pagecount = nextpage;
+				videocount += useperpage;
+				
+				api.emit('page', pagecount, videocount, pagetoken);
 
-				if(max && pagecount>=max){
+				if(max && videocount>=max){
 					runnext = false;
 				}
 				
@@ -113,8 +121,8 @@ module.exports = function Bot(options){
 				}
 
 				if(runnext){
-					totalpages++;
-					next_page(next_token);
+					pagecount++;
+					next_page(next_token, next_published);
 				}
 				else{
 					done();
@@ -130,9 +138,7 @@ module.exports = function Bot(options){
 
 	function run_query(done){
 		run_total(function(error, total){
-			console.log('-------------------------------------------');
-			console.dir(total);
-			process.exit();
+			run_pages(done);
 		})
 	}
 

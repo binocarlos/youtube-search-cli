@@ -56,8 +56,8 @@ else{
 		console.log(JSON.stringify(video));
 	})
 
-	bot.on('page', function(page, token){
-		//console.log('page: ' + page + ' - ' + token);
+	bot.on('page', function(page, total, token){
+		//console.log('page: ' + page + ' - ' + total + ' - ' + token);
 	})
 	bot.query(function(error){
 		process.exit();
