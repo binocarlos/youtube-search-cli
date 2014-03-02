@@ -18,10 +18,10 @@ $ npm install youtube-search-cli -g
 ```
 Usage: youtube-search-cli
 Options:
- 		-s, --search  Search String  [required]
-	  -k, --key     API Key        [required]
-	  -t, --total   Print Total dont search
-	  -m, --max     Max results
+    -s, --search  Search String  [required]
+    -k, --key     API Key        [required]
+    -t, --total   Print Total dont search
+    -m, --max     Max results
 ```
 
 ## output
@@ -30,11 +30,11 @@ The results are streamed the stdout:
 
 ```json
 {
-	count:5439,
-	results:[{
-		...
+	"count":5439,
+	"results":[{
+		
 	},{
-		...
+		
 	}]
 }
 ```
