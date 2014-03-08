@@ -52,11 +52,16 @@ if(total){
 }
 else{
 
+	var count = 0;
+	var pages = 0;
+
 	bot.on('video', function(video){
+		count++;
 		console.log(JSON.stringify(video));
 	})
 
 	bot.on('page', function(page, total, token){
+		pages++;
 		//console.log('page: ' + page + ' - ' + total + ' - ' + token);
 	})
 	bot.query(function(error){

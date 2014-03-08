@@ -11,6 +11,7 @@ module.exports = function Bot(options){
 	var search = options.search;
 	var max = parseInt(options.max || 10);
 	var perpage = 50;
+	var looplimit = 500;
 
 	if(isNaN(max)){
 		max = 10;
@@ -125,7 +126,17 @@ module.exports = function Bot(options){
 					next_page(next_token, next_published);
 				}
 				else{
-					done();
+					if(!next_token){
+						if(videocount<max){
+							next_page(null, next_published);
+						}
+						else{
+							done();
+						}
+					}
+					else{
+						done();	
+					}
 				}
 				
 			})
